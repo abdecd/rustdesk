@@ -339,7 +339,9 @@ class _RawTouchGestureDetectorRegionState
     }
     if (!handleTouch) {
       if (isSpecialHoldDragActive) return;
-      await ffi.cursorModel.updatePan(d.delta, d.localPosition, handleTouch);
+      final speed = ffi.ffiModel.virtualMouseMode.pointerSpeed;
+      await ffi.cursorModel.updatePan(
+          d.delta * speed, d.localPosition, handleTouch);
     }
   }
 
@@ -414,11 +416,14 @@ class _RawTouchGestureDetectorRegionState
     if (handleTouch && !_touchModePanStarted) {
       return;
     }
+    final speed = ffi.ffiModel.virtualMouseMode.pointerSpeed;
     // In relative mouse mode, send delta directly without position tracking.
     if (inputModel.relativeMouseMode.value) {
-      await inputModel.sendMobileRelativeMouseMove(d.delta.dx, d.delta.dy);
+      await inputModel.sendMobileRelativeMouseMove(
+          d.delta.dx * speed, d.delta.dy * speed);
     } else {
-      await ffi.cursorModel.updatePan(d.delta, d.localPosition, handleTouch);
+      await ffi.cursorModel.updatePan(
+          d.delta * speed, d.localPosition, handleTouch);
     }
   }
 
@@ -446,29 +451,64 @@ class _RawTouchGestureDetectorRegionState
     _touchModePanStarted = false;
   }
 
-  // scale + pan event
-  onTwoFingerScaleStart(ScaleStartDetails d) {
+  // Two-finger scroll
+  onTwoFingerScrollStart(DragStartDetails d) {
     _lastTapDownDetails = null;
     if (isNotTouchBasedDevice()) {
       return;
     }
     if (isSpecialHoldDragActive) {
       // Initialize the last focal point to calculate deltas manually.
-      _lastSpecialHoldDragFocalPoint = d.focalPoint;
+      _lastSpecialHoldDragFocalPoint = d.globalPosition;
     }
   }
 
-  onTwoFingerScaleUpdate(ScaleUpdateDetails d) async {
+  onTwoFingerScrollUpdate(DragUpdateDetails d) async {
     if (isNotTouchBasedDevice()) {
       return;
     }
 
-    // If in special drag mode, perform a pan instead of a scale.
+    // If in special drag mode, perform a pan instead of a scroll.
     if (isSpecialHoldDragActive) {
-      // Calculate delta manually to avoid the jumpy behavior.
-      final delta = d.focalPoint - _lastSpecialHoldDragFocalPoint;
-      _lastSpecialHoldDragFocalPoint = d.focalPoint;
-      await ffi.cursorModel.updatePan(delta * 2.0, d.focalPoint, handleTouch);
+      final speed = ffi.ffiModel.virtualMouseMode.pointerSpeed;
+      final delta = d.globalPosition - _lastSpecialHoldDragFocalPoint;
+      _lastSpecialHoldDragFocalPoint = d.globalPosition;
+      await ffi.cursorModel.updatePan(
+          delta * 2.0 * speed, d.globalPosition, handleTouch);
+      return;
+    }
+
+    if (ffi.ffiModel.isPeerAndroid) return;
+
+    _mouseScrollIntegral += d.delta.dy / 4;
+    if (_mouseScrollIntegral > 1) {
+      inputModel.scroll(1);
+      _mouseScrollIntegral = 0;
+    } else if (_mouseScrollIntegral < -1) {
+      inputModel.scroll(-1);
+      _mouseScrollIntegral = 0;
+    }
+  }
+
+  onTwoFingerScrollEnd(DragEndDetails d) async {
+    if (isNotTouchBasedDevice()) {
+      return;
+    }
+    if (!isSpecialHoldDragActive) {
+      await inputModel.sendMouse('up', MouseButtons.left);
+    }
+  }
+
+  // Three-finger scale + pan
+  onThreeFingerScaleStart(ScaleStartDetails d) {
+    _lastTapDownDetails = null;
+    if (isNotTouchBasedDevice()) {
+      return;
+    }
+  }
+
+  onThreeFingerScaleUpdate(ScaleUpdateDetails d) async {
+    if (isNotTouchBasedDevice()) {
       return;
     }
 
@@ -495,7 +535,7 @@ class _RawTouchGestureDetectorRegionState
     }
   }
 
-  onTwoFingerScaleEnd(ScaleEndDetails d) async {
+  onThreeFingerScaleEnd(ScaleEndDetails d) async {
     if (isNotTouchBasedDevice()) {
       return;
     }
@@ -511,24 +551,9 @@ class _RawTouchGestureDetectorRegionState
       // No idea why we need to set the view style to "" here.
       // bind.sessionSetViewStyle(sessionId: sessionId, value: "");
     }
-    if (!isSpecialHoldDragActive) {
-      await inputModel.sendMouse('up', MouseButtons.left);
-    }
   }
 
   get onHoldDragCancel => null;
-  get onThreeFingerVerticalDragUpdate => ffi.ffiModel.isPeerAndroid
-      ? null
-      : (d) {
-          _mouseScrollIntegral += d.delta.dy / 4;
-          if (_mouseScrollIntegral > 1) {
-            inputModel.scroll(1);
-            _mouseScrollIntegral = 0;
-          } else if (_mouseScrollIntegral < -1) {
-            inputModel.scroll(-1);
-            _mouseScrollIntegral = 0;
-          }
-        };
 
   makeGestures(BuildContext context) {
     return <Type, GestureRecognizerFactory>{
@@ -582,10 +607,12 @@ class _RawTouchGestureDetectorRegionState
           ..onOneFingerPanUpdate = onOneFingerPanUpdate
           ..onOneFingerPanEnd = onOneFingerPanEnd
           ..onOneFingerPanCancel = onOneFingerPanCancel
-          ..onTwoFingerScaleStart = onTwoFingerScaleStart
-          ..onTwoFingerScaleUpdate = onTwoFingerScaleUpdate
-          ..onTwoFingerScaleEnd = onTwoFingerScaleEnd
-          ..onThreeFingerVerticalDragUpdate = onThreeFingerVerticalDragUpdate;
+          ..onTwoFingerScrollStart = onTwoFingerScrollStart
+          ..onTwoFingerScrollUpdate = onTwoFingerScrollUpdate
+          ..onTwoFingerScrollEnd = onTwoFingerScrollEnd
+          ..onThreeFingerScaleStart = onThreeFingerScaleStart
+          ..onThreeFingerScaleUpdate = onThreeFingerScaleUpdate
+          ..onThreeFingerScaleEnd = onThreeFingerScaleEnd;
       }),
     };
   }

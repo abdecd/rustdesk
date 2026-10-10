@@ -272,6 +272,60 @@ class _GestureHelpState extends State<GestureHelp> {
                                     ],
                                   )),
                             )),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+                        child: SizedBox(
+                          width: 260,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(translate('Pointer speed')),
+                                  Text(
+                                    '${_virtualMouseMode.pointerSpeed.toStringAsFixed(1)}x',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                              Transform.translate(
+                                offset: const Offset(0.0, -6.0),
+                                child: Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 0.0),
+                                      child: Text(translate('Slow')),
+                                    ),
+                                    Expanded(
+                                      child: Slider(
+                                        value: _virtualMouseMode.pointerSpeed
+                                            .clamp(0.2, 3.0),
+                                        min: 0.2,
+                                        max: 3.0,
+                                        divisions: 28,
+                                        onChanged: (value) {
+                                          _virtualMouseMode.setPointerSpeed(
+                                              double.parse(
+                                                  value.toStringAsFixed(1)));
+                                          setState(() {});
+                                        },
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 16.0),
+                                      child: Text(translate('Fast')),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -298,18 +352,18 @@ class _GestureHelpState extends State<GestureHelp> {
                               translate("Mouse Drag")),
                           GestureInfo(
                               width,
-                              GestureIcons.iconGestureFThreeFingers,
-                              translate("Three-Finger vertically"),
+                              GestureIcons.iconGestureFDragUpDown_,
+                              translate("Two-Finger vertically"),
                               translate("Mouse Wheel")),
                           GestureInfo(
                               width,
-                              GestureIcons.iconGestureFDrag,
-                              translate("Two-Finger Move"),
+                              GestureIcons.iconGestureFThreeFingers,
+                              translate("Three-Finger Move"),
                               translate("Canvas Move")),
                           GestureInfo(
                               width,
                               GestureIcons.iconGesturePinch,
-                              translate("Pinch to Zoom"),
+                              translate("Three-Finger Pinch"),
                               translate("Canvas Zoom")),
                         ]
                       : [
@@ -330,18 +384,18 @@ class _GestureHelpState extends State<GestureHelp> {
                               translate("Mouse Drag")),
                           GestureInfo(
                               width,
-                              GestureIcons.iconGestureFThreeFingers,
-                              translate("Three-Finger vertically"),
+                              GestureIcons.iconGestureFDragUpDown_,
+                              translate("Two-Finger vertically"),
                               translate("Mouse Wheel")),
                           GestureInfo(
                               width,
-                              GestureIcons.iconGestureFDrag,
-                              translate("Two-Finger Move"),
+                              GestureIcons.iconGestureFThreeFingers,
+                              translate("Three-Finger Move"),
                               translate("Canvas Move")),
                           GestureInfo(
                               width,
                               GestureIcons.iconGesturePinch,
-                              translate("Pinch to Zoom"),
+                              translate("Three-Finger Pinch"),
                               translate("Canvas Zoom")),
                         ],
                 )),

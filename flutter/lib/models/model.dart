@@ -1846,14 +1846,22 @@ class VirtualMouseMode with ChangeNotifier {
   bool _showVirtualMouse = false;
   double _virtualMouseScale = 1.0;
   bool _showVirtualJoystick = false;
+  double _pointerSpeed = 1.0;
 
   bool get showVirtualMouse => _showVirtualMouse;
   double get virtualMouseScale => _virtualMouseScale;
   bool get showVirtualJoystick => _showVirtualJoystick;
+  double get pointerSpeed => _pointerSpeed;
 
   FfiModel ffiModel;
 
-  VirtualMouseMode(this.ffiModel);
+  VirtualMouseMode(this.ffiModel) {
+    final savedSpeed = double.tryParse(
+        bind.mainGetLocalOption(key: kOptionPointerSpeed));
+    if (savedSpeed != null && savedSpeed > 0) {
+      _pointerSpeed = savedSpeed;
+    }
+  }
 
   bool _shouldShow() => !ffiModel.isPeerAndroid;
 
@@ -1873,6 +1881,14 @@ class VirtualMouseMode with ChangeNotifier {
     notifyListeners();
   }
 
+  setPointerSpeed(double s) {
+    if (s <= 0) return;
+    if (s == _pointerSpeed) return;
+    _pointerSpeed = s;
+    bind.mainSetLocalOption(key: kOptionPointerSpeed, value: s.toStringAsFixed(2));
+    notifyListeners();
+  }
+
   setShowVirtualJoystick(bool b) {
     if (b == _showVirtualJoystick) return;
     if (_shouldShow()) {
@@ -1889,6 +1905,11 @@ class VirtualMouseMode with ChangeNotifier {
         1.0;
     _showVirtualJoystick =
         bind.mainGetLocalOption(key: kOptionShowVirtualJoystick) == 'Y';
+    final savedSpeed = double.tryParse(
+            bind.mainGetLocalOption(key: kOptionPointerSpeed));
+    if (savedSpeed != null && savedSpeed > 0) {
+      _pointerSpeed = savedSpeed;
+    }
     notifyListeners();
   }
 
