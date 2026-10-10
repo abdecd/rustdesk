@@ -752,9 +752,12 @@ RawGestureDetector getMixinGestureDetector({
   GestureDragUpdateCallback? onOneFingerPanUpdate,
   GestureDragEndCallback? onOneFingerPanEnd,
   GestureDragCancelCallback? onOneFingerPanCancel,
-  GestureScaleUpdateCallback? onTwoFingerScaleUpdate,
-  GestureScaleEndCallback? onTwoFingerScaleEnd,
-  GestureDragUpdateCallback? onThreeFingerVerticalDragUpdate,
+  GestureDragStartCallback? onTwoFingerScrollStart,
+  GestureDragUpdateCallback? onTwoFingerScrollUpdate,
+  GestureDragEndCallback? onTwoFingerScrollEnd,
+  GestureScaleStartCallback? onThreeFingerScaleStart,
+  GestureScaleUpdateCallback? onThreeFingerScaleUpdate,
+  GestureScaleEndCallback? onThreeFingerScaleEnd,
 }) {
   return RawGestureDetector(
       child: child,
@@ -801,9 +804,12 @@ RawGestureDetector getMixinGestureDetector({
             ..onOneFingerPanUpdate = onOneFingerPanUpdate
             ..onOneFingerPanEnd = onOneFingerPanEnd
             ..onOneFingerPanCancel = onOneFingerPanCancel
-            ..onTwoFingerScaleUpdate = onTwoFingerScaleUpdate
-            ..onTwoFingerScaleEnd = onTwoFingerScaleEnd
-            ..onThreeFingerVerticalDragUpdate = onThreeFingerVerticalDragUpdate;
+            ..onTwoFingerScrollStart = onTwoFingerScrollStart
+            ..onTwoFingerScrollUpdate = onTwoFingerScrollUpdate
+            ..onTwoFingerScrollEnd = onTwoFingerScrollEnd
+            ..onThreeFingerScaleStart = onThreeFingerScaleStart
+            ..onThreeFingerScaleUpdate = onThreeFingerScaleUpdate
+            ..onThreeFingerScaleEnd = onThreeFingerScaleEnd;
         }),
       });
 }
